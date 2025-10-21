@@ -1,0 +1,22 @@
+{
+  "name": "1inch-integration",
+  "version": "1.0.0",
+  "description": "Implementation of 1inch API for token swap",
+  "main": "getQuote.js",
+  "scripts": {
+    "quote": "node getQuote.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "1inch",
+    "defi",
+    "swap",
+    "ethereum",
+    "token"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}
