@@ -5,6 +5,8 @@
   "main": "getQuote.js",
   "scripts": {
     "quote": "node getQuote.js",
+    "swap": "node getSwapTransaction.js",
+    "price": "node getTokenPrice.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -17,6 +19,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "moralis": "^2.27.2"
   }
 }
