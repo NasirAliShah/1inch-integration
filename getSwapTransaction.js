@@ -9,7 +9,7 @@
 require('dotenv').config();
 
 // API Configuration
-const ONEINCH_API_BASE_URL = 'https://api.1inch.com/swap/v6.1';
+const ONEINCH_API_BASE_URL = 'https://api.1inch.dev/swap/v6.0'; // Use same domain as quote script
 const CHAIN_ID = 1; // Ethereum Mainnet
 const API_KEY = process.env.ONE_INCH_API_KEY;
 
@@ -59,6 +59,9 @@ async function getSwapTransaction(fromToken, toToken, amount, fromAddress, slipp
     console.log(`   Amount: ${amount} wei (${amount / 1e18} ETH)`);
     console.log(`   Wallet: ${fromAddress}`);
     console.log(`   Slippage: ${slippage}%\n`);
+
+    // Log the full URL for debugging
+    console.log(`🔗 API URL: ${url}\n`);
 
     // Make API request with authorization header
     const response = await fetch(url, {
