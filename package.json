@@ -7,6 +7,7 @@
     "quote": "node getQuote.js",
     "swap": "node getSwapTransaction.js",
     "price": "node getTokenPrice.js",
+    "decode": "node decodeTransactionData.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
