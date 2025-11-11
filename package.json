@@ -7,6 +7,8 @@
     "quote": "node getQuote.js",
     "swap": "node getSwapTransaction.js",
     "price": "node getTokenPrice.js",
+    "rdx-price": "node get1inchTokenPrices.js",
+    "compare-prices": "node compareTokenPrices.js",
     "decode": "node decodeTransactionData.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

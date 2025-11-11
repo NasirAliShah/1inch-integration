@@ -15,12 +15,12 @@ const API_KEY = process.env.ONE_INCH_API_KEY;
 
 // Token Addresses
 const ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'; // Native ETH address for 1inch
-const RDX_TOKEN_ADDRESS = '0xf222b0e892f419c35e61892cddf0a8ec190c4b9d'; // RDX token address
+const RDX_TOKEN_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'; // RDX token address
 
 // Swap Configuration
-const AMOUNT_IN_WEI = '100000000000000'; // 0.0001 ETH (small amount for testing)
+const AMOUNT_IN_WEI = '10000000000000000'; // 0.0001 ETH (small amount for testing)
 const WALLET_ADDRESS = '0xB3bB9c6DB830A99eacBac9B969b1cFbf44ba4b9f'; // Your wallet address
-const SLIPPAGE_PERCENT = '5'; // 5% slippage tolerance
+const SLIPPAGE_PERCENT = '0'; // 5% slippage tolerance
 
 /**
  * Fetches swap transaction data from 1inch API
@@ -48,6 +48,10 @@ async function getSwapTransaction(fromToken, toToken, amount, fromAddress, slipp
       slippage: slippage,       // Slippage tolerance
       includeTokensInfo: true,  // Include token metadata
       includeProtocols: true,   // Include protocol routing information
+      // Enable Aerodrome and other DEXs - use protocols parameter to include specific DEXs
+      protocols: 'UNISWAP_V2,UNISWAP_V3,SUSHISWAP,CURVE,BALANCER,AERODROME', // Include Aerodrome
+      // Alternative: Use excludeProtocols to exclude unwanted DEXs instead
+      // excludeProtocols: 'SOME_UNWANTED_DEX',
     });
 
     const url = `${ONEINCH_API_BASE_URL}/${CHAIN_ID}/swap?${params.toString()}`;
