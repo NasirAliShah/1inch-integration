@@ -74,7 +74,8 @@ function decodeSwapFunction(parametersData) {
   }
 
   // The 9th parameter (bytes) is dynamic - its value is an offset
-  const bytesOffset = parseInt(fixedParams[8], 16) * 2; // Convert to hex position
+  const bytesOffsetParam = parametersData.slice(8 * 64, 9 * 64);
+  const bytesOffset = parseInt(bytesOffsetParam, 16) * 2; // Convert to hex position
   const bytesLengthHex = parametersData.slice(bytesOffset, bytesOffset + 64);
   const bytesLength = parseInt(bytesLengthHex, 16) * 2; // Length in hex chars
   const bytesData = parametersData.slice(bytesOffset + 64, bytesOffset + 64 + bytesLength);
@@ -89,7 +90,7 @@ function decodeSwapFunction(parametersData) {
     amount: fixedParams[5] ? BigInt('0x' + fixedParams[5]).toString() : '0', // uint256
     minReturnAmount: fixedParams[6] ? BigInt('0x' + fixedParams[6]).toString() : '0', // uint256
     flags: fixedParams[7] ? BigInt('0x' + fixedParams[7]).toString() : '0', // uint256
-    bytesOffset: parseInt(fixedParams[8], 16), // offset to bytes data
+    bytesOffset: parseInt(bytesOffsetParam, 16), // offset to bytes data
     bytesData: bytesData // actual bytes data
   };
 
@@ -108,16 +109,25 @@ function decodeSwapFunction(parametersData) {
 
   // Convert amounts to readable format
   console.log('\n💰 HUMAN READABLE AMOUNTS:');
-  const inputAmountEth = Number(decoded.amount) / (10**18);
-  const minOutputTokens = Number(decoded.minReturnAmount) / (10**18);
   
-  console.log(`   Input Amount:  ${inputAmountEth} ETH`);
-  console.log(`   Min Output:    ${minOutputTokens.toLocaleString('en-US', { maximumFractionDigits: 6 })} RDX tokens`);
+  // Determine decimals based on token addresses
+  // USDC uses 6 decimals, most other tokens use 18
+  const srcTokenLower = decoded.srcToken.toLowerCase();
+  const dstTokenLower = decoded.dstToken.toLowerCase();
+  
+  const srcDecimals = (srcTokenLower === '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913') ? 6 : 18;
+  const dstDecimals = 18; // Default to 18 for destination token
+  
+  const inputAmount = Number(decoded.amount) / (10**srcDecimals);
+  const minOutputAmount = Number(decoded.minReturnAmount) / (10**dstDecimals);
+  
+  console.log(`   Input Amount:  ${inputAmount.toLocaleString('en-US', { maximumFractionDigits: 6 })} tokens`);
+  console.log(`   Min Output:    ${minOutputAmount.toLocaleString('en-US', { maximumFractionDigits: 6 })} tokens`);
 
   // Calculate exchange rate
-  if (inputAmountEth > 0) {
-    const exchangeRate = minOutputTokens / inputAmountEth;
-    console.log(`   Exchange Rate: 1 ETH = ${exchangeRate.toLocaleString('en-US', { maximumFractionDigits: 2 })} RDX`);
+  if (inputAmount > 0) {
+    const exchangeRate = minOutputAmount / inputAmount;
+    console.log(`   Exchange Rate: 1 Source Token = ${exchangeRate.toLocaleString('en-US', { maximumFractionDigits: 6 })} Destination Tokens`);
   }
 
   return decoded;
@@ -155,11 +165,19 @@ function decodeGenericParameters(parametersData) {
  */
 function analyzeTokens(srcToken, dstToken) {
   const knownTokens = {
+    // Ethereum Mainnet
     '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee': 'ETH (Native Ethereum)',
     '0xa0b86a33e6441c8c06dd2a76c88b0b8685c2c5c': 'USDC',
     '0x6b175474e89094c44da98b954eedeac495271d0f': 'DAI',
     '0xdac17f958d2ee523a2206206994597c13d831ec7': 'USDT',
-    '0xf222b0e892f419c35e61892cddf0a8ec190c4b9d': 'RDX Token'
+    '0xf222b0e892f419c35e61892cddf0a8ec190c4b9d': 'RDX Token',
+    
+    // Base Network
+    '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913': 'USDC (Base)',
+    '0xcc68f95cf050e769d46d8d133bf4193fcbb3f1eb': 'ALVA (Base)',
+    '0x4200000000000000000000000000000000000006': 'WETH (Wrapped ETH - Base)',
+    '0x990636ecb3ff04d33d92e970d3d588bf5cd8d086': 'Caller/Receiver Address',
+    '0x61811e2f877c9031a1daeccea216d167a8c40d52': 'Destination Receiver Address'
   };
 
   console.log('\n🪙 TOKEN ANALYSIS:');
@@ -172,7 +190,7 @@ function analyzeTokens(srcToken, dstToken) {
  */
 function main() {
   // Your latest transaction data
-  const transactionData = "0x07ed23790000000000000000000000008c864d0c8e476bf9eb9d620c10e1296fb0e2f940000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000008c864d0c8e476bf9eb9d620c10e1296fb0e2f940000000000000000000000000b3bb9c6db830a99eacbac9b969b1cfbf44ba4b9f000000000000000000000000000000000000000000000000002386f26fc1000000000000000000000000000000000000000000000000000000000000021ddd1d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000000000000000ef0000000000000000000000000000000000000000d100006e00005400000600206b4be0b900a0744c8c09000000000000000000000000000000000000000090cbe4bdd538d6e9b379bff5fe72c3d67a521de500000000000000000000000000000000000000000000000000001b48eb57e0004041c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2d0e30db002a000000000000000000000000000000000000000000000000000000000021871f1ee63c1e580e0554a476a092703abdb3ef35c80e0d76d32939fc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2111111125421ca6dc452d289314280a0f8842a650000000000000000000000000000000000";
+  const transactionData = "0x07ed2379000000000000000000000000990636ecb3ff04d33d92e970d3d588bf5cd8d086000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda02913000000000000000000000000cc68f95cf050e769d46d8d133bf4193fcbb3f1eb000000000000000000000000990636ecb3ff04d33d92e970d3d588bf5cd8d08600000000000000000000000061811e2f877c9031a1daeccea216d167a8c40d520000000000000000000000000000000000000000000000000000000000001747000000000000000000000000000000000000000000000000024a648597beff880000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000000000000002a900000000000000000000000000000000000000000000028b00025d00004e00a0744c8c09833589fcd6edb6e08f4c7c32d4f71b54bda0291390cbe4bdd538d6e9b379bff5fe72c3d67a521de5000000000000000000000000000000000000000000000000000000000000001100a007e5c0d20000000000000000000000000000000000000000000000000001eb00007b0c20833589fcd6edb6e08f4c7c32d4f71b54bda029133099a7c284610897baaa43cbdc06469e44a06ce16ae4071118002dc6c03099a7c284610897baaa43cbdc06469e44a06ce10000000000000000000000000000000000000000000000000000019daa9c2609833589fcd6edb6e08f4c7c32d4f71b54bda029135126cf77a3ba9a5ca399b7c97c74d54e5b1beb874e4342000000000000000000000000000000000000060004cac88ea90000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000024a648597beff8800000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000111111125421ca6dc452d289314280a0f8842a6500000000000000000000000000000000000000000000000000000000696226ae00000000000000000000000000000000000000000000000000000000000000010000000000000000000000004200000000000000000000000000000000000006000000000000000000000000cc68f95cf050e769d46d8d133bf4193fcbb3f1eb0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000420dd381b31aef6683db6b902084cb0ffece40da0020d6bdbf78cc68f95cf050e769d46d8d133bf4193fcbb3f1eb111111125421ca6dc452d289314280a0f8842a650000000000000000000000000000000000000000000000396637c0";
 
   console.log('🚀 Starting Transaction Data Decoder...\n');
   

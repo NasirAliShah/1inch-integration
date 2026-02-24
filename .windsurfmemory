@@ -1,0 +1,18 @@
+# .windsurfmemory
+
+# Recent Decisions
+- 2025-12-02: Migrated from node v18 to node v22
+- 2025-12-02: Adopted web3 for blockchain library
+- 2025-12-02: Implemented 1inch api for swap transactions
+
+# Known Issues & Workarounds
+- Issue: Failing swap data 
+- Workaround: Check the API response for errors and validate the input parameters
+
+# Architectural Decisions
+- Using server components by default, client components only when needed
+- Calling scripts from the script
+- Some calls are made from the package.json
+
+# Team Preferences
+- Favor readability over cleverness

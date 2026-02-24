@@ -1,0 +1,67 @@
+# .windsurfrules
+
+# Project Context
+This is a 1inch integration built with Node Js, WEB3.
+
+# Tech Stack
+- Framework: [e.g., Next.js 14]
+- Language: [e.g., JavaScript]
+- State Management: [e.g., Web3]
+- Styling: [e.g., Tailwind CSS]
+- Testing: [e.g., Jest]
+- Package Manager: [e.g., npm]
+
+# Architecture Patterns
+- Use functional components with hooks
+- Follow feature-based folder structure
+- Implement error boundaries for async operations
+- Use custom hooks for shared logic
+
+# Code Style Conventions
+- Use named exports over default exports
+- Prefer const over let, avoid var
+- Use async/await over promises chains
+- Keep functions under 50 lines when possible
+- Use descriptive variable names (no single letters except iterators)
+
+# File Naming
+- Components: PascalCase (UserProfile.tsx)
+- Utilities: camelCase (formatDate.ts)
+- Constants: UPPER_SNAKE_CASE (API_ENDPOINTS.ts)
+- Hooks: camelCase with 'use' prefix (useAuth.ts)
+
+# Import Order
+1. React/Framework imports
+2. Third-party libraries
+3. Internal components
+4. Utilities/Helpers
+5. Types/Interfaces
+6. Styles
+
+# Testing Requirements
+- Unit tests for utilities and hooks
+- Component tests for UI components
+- Integration tests for critical flows
+- E2E tests for main user journeys
+
+# Don't Do This
+- Don't use 'any' type in JavaScript
+- Don't directly mutate state
+- Don't ignore JavaScript errors
+- Don't skip error handling
+- Don't commit console.logs
+- Don't create god components (>300 lines)
+
+# Always Do This
+- Add JSDoc comments for complex functions
+- Handle loading and error states
+- Implement proper JavaScript types
+- Write tests alongside features
+- Follow accessibility guidelines (a11y)
+- Use semantic HTML
+
+# Project-Specific Patterns
+[Add your specific patterns here]
+- Authentication: Use AuthContext with JWT
+- API Calls: Use 1inch api
+

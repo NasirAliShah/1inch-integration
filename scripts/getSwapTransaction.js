@@ -1,26 +1,30 @@
 /**
  * 1inch API Swap Transaction Script
- * Purpose: Get swap transaction data for ETH to RDX token on Ethereum mainnet
+ * Purpose: Get swap transaction data for USDC to ALVA token on Base chain
  * 
  * This generates the actual transaction data that can be signed and executed
- * RDX Token Address: 0xf222b0e892f419c35e61892cddf0a8ec190c4b9d
+ * USDC Address (Base): 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+ * ALVA Address (Base): 0xcc68f95cf050e769d46d8d133bf4193fcbb3f1eb
  */
 
 require('dotenv').config();
 
 // API Configuration
 const ONEINCH_API_BASE_URL = 'https://api.1inch.dev/swap/v6.0'; // Use same domain as quote script
-const CHAIN_ID = 1; // Ethereum Mainnet
-const API_KEY = process.env.ONE_INCH_API_KEY;
+const CHAIN_ID = 8453; // Base Chain
+const API_KEY = "zeb0FSQeMzOEBZP6bqdT1DGLhFCKWTqq";
 
 // Token Addresses
-const ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'; // Native ETH address for 1inch
-const RDX_TOKEN_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'; // RDX token address
+const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'; // USDC on Base (6 decimals)
+const ALVA_TOKEN_ADDRESS = '0xcc68f95cf050e769d46d8d133bf4193fcbb3f1eb'; // ALVA token address on Base
 
 // Swap Configuration
-const AMOUNT_IN_WEI = '10000000000000000'; // 0.0001 ETH (small amount for testing)
+// NOTE: Amount should match the source token's decimals
+// For USDC (6 decimals): 1 USDC = 1000000 wei
+// For ETH (18 decimals): 0.00001 ETH = 10000000000000 wei
+const AMOUNT_IN_WEI = '10000000000000'; // 0.00001 ETH worth (18 decimals)
 const WALLET_ADDRESS = '0xB3bB9c6DB830A99eacBac9B969b1cFbf44ba4b9f'; // Your wallet address
-const SLIPPAGE_PERCENT = '0'; // 5% slippage tolerance
+const SLIPPAGE_PERCENT = '5'; // 5% slippage tolerance
 
 /**
  * Fetches swap transaction data from 1inch API
@@ -40,8 +44,8 @@ async function getSwapTransaction(fromToken, toToken, amount, fromAddress, slipp
 
     // Construct the API URL with query parameters
     const params = new URLSearchParams({
-      src: fromToken,           // Source token (ETH)
-      dst: toToken,             // Destination token0x06136C31dB2FbED3Fed758A0F5B0Ce30DAeACc43 (RDX)
+      src: fromToken,           // Source token (USDC)
+      dst: toToken,             // Destination token (ALVA)
       amount: amount,           // Amount to swap in wei
       from: fromAddress,        // Your wallet address
       origin: fromAddress,      // Origin address (usually same as from)
@@ -49,17 +53,18 @@ async function getSwapTransaction(fromToken, toToken, amount, fromAddress, slipp
       includeTokensInfo: true,  // Include token metadata
       includeProtocols: true,   // Include protocol routing information
       // Enable Aerodrome and other DEXs - use protocols parameter to include specific DEXs
-      protocols: 'UNISWAP_V2,UNISWAP_V3,SUSHISWAP,CURVE,BALANCER,AERODROME', // Include Aerodrome
+      // protocols: 'UNISWAP_V2,UNISWAP_V3,SUSHISWAP,CURVE,BALANCER,AERODROME', // Include Aerodrome
       // Alternative: Use excludeProtocols to exclude unwanted DEXs instead
       // excludeProtocols: 'SOME_UNWANTED_DEX',
+      disableEstimate: true,
     });
 
     const url = `${ONEINCH_API_BASE_URL}/${CHAIN_ID}/swap?${params.toString()}`;
 
     console.log('🔄 Fetching swap transaction from 1inch API...\n');
     console.log(`📊 Swap Details:`);
-    console.log(`   From: ETH`);
-    console.log(`   To: RDX Token`);
+    console.log(`   From: USDC`);
+    console.log(`   To: ALVA Token`);
     console.log(`   Amount: ${amount} wei (${amount / 1e18} ETH)`);
     console.log(`   Wallet: ${fromAddress}`);
     console.log(`   Slippage: ${slippage}%\n`);
@@ -109,17 +114,24 @@ function displaySwapTransaction(swapData) {
   const fromTokenAmount = swapData.fromTokenAmount || swapData.srcAmount || AMOUNT_IN_WEI;
   const toTokenAmount = swapData.toTokenAmount || swapData.dstAmount || swapData.toAmount;
   
-  // Extract decimals and symbols
-  const fromDecimals = swapData.fromToken?.decimals || swapData.srcToken?.decimals || 18;
-  const toDecimals = swapData.toToken?.decimals || swapData.dstToken?.decimals || 18;
-  const fromSymbol = swapData.fromToken?.symbol || swapData.srcToken?.symbol || 'ETH';
-  const toSymbol = swapData.toToken?.symbol || swapData.dstToken?.symbol || 'RDX';
+  // Extract decimals and symbols - use API response first, then fallback
+  const fromDecimals = swapData.fromToken?.decimals || swapData.srcToken?.decimals || 6; // USDC = 6 decimals
+  const toDecimals = swapData.toToken?.decimals || swapData.dstToken?.decimals || 18; // ALVA = 18 decimals
+  const fromSymbol = swapData.fromToken?.symbol || swapData.srcToken?.symbol || 'USDC';
+  const toSymbol = swapData.toToken?.symbol || swapData.dstToken?.symbol || 'ALVA';
+  
+  // Debug: Log the actual decimals being used
+  console.log(`\n🔍 DEBUG - Token Decimals:`);
+  console.log(`   From Token Decimals: ${fromDecimals}`);
+  console.log(`   To Token Decimals: ${toDecimals}\n`);
 
-  // Input amount
+  // Input amount - the amount in wei is for the source token
+  // If swapping USDC (6 decimals), divide by 10^6
+  // If swapping ETH (18 decimals), divide by 10^18
   const fromAmountFormatted = parseFloat(fromTokenAmount) / Math.pow(10, fromDecimals);
   console.log(`💰 You Send:`);
-  console.log(`   ${fromAmountFormatted} ${fromSymbol}`);
-  console.log(`   (${fromTokenAmount} wei)\n`);
+  console.log(`   ${fromAmountFormatted.toLocaleString('en-US', { maximumFractionDigits: 8 })} ${fromSymbol}`);
+  console.log(`   (${fromTokenAmount} smallest units)\n`);
 
   // Output amount
   const toAmountFormatted = parseFloat(toTokenAmount) / Math.pow(10, toDecimals);
@@ -200,10 +212,10 @@ async function main() {
   try {
     console.log('🚀 Starting 1inch Swap Transaction Generation...\n');
     
-    // Get swap transaction data for ETH -> RDX swap
+    // Get swap transaction data for USDC -> ALVA swap
     await getSwapTransaction(
-      ETH_ADDRESS, 
-      RDX_TOKEN_ADDRESS, 
+      USDC_ADDRESS, 
+      ALVA_TOKEN_ADDRESS, 
       AMOUNT_IN_WEI, 
       WALLET_ADDRESS, 
       SLIPPAGE_PERCENT
